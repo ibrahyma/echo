@@ -5,7 +5,6 @@ import com.im.echo.exceptions.UsernameAlreadyExistsException;
 import com.im.echo.model.Message;
 import com.im.echo.model.User;
 import com.im.echo.util.JsonMapper;
-import lombok.Data;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
