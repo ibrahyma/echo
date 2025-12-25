@@ -13,39 +13,34 @@ import java.util.ArrayList;
 
 public class ServerState {
     @Getter
-    private final ArrayList<User> users;
+    private static final ArrayList<User> users = new ArrayList<>();
 
     @Getter
-    private final ArrayList<Message> messages;
+    private static final ArrayList<Message> messages = new ArrayList<>();
 
-    private final Logger logger = LoggerFactory.getLogger(ServerState.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServerState.class);
 
-    public ServerState() {
-        this.users = new ArrayList<>();
-        this.messages = new ArrayList<>();
+    private static boolean usernameExists(String name) {
+        return users.stream().anyMatch(user -> user.getName().equals(name.toLowerCase().trim()));
     }
 
-    private boolean usernameExists(String name) {
-        return this.users.stream().anyMatch(user -> user.getName().equals(name.toLowerCase().trim()));
-    }
-
-    public User addUser(String name) throws UsernameAlreadyExistsException {
+    public static User addUser(String name) throws UsernameAlreadyExistsException {
         if (usernameExists(name)) {
             throw new UsernameAlreadyExistsException(String.format("Le nom %s est deja utilisé", name));
         }
 
         User addedUser = User.builder().name(name.toLowerCase()).build();
-        this.users.add(addedUser);
+        users.add(addedUser);
         return addedUser;
     }
 
-    public boolean removeUser(User user) {
+    public static boolean removeUser(User user) {
         if (user == null) return false;
-        return this.users.removeIf(u -> user.getId().equals(u.getId()));
+        return users.removeIf(u -> user.getId().equals(u.getId()));
     }
 
-    public void addMessage(Message message) throws JsonProcessingException {
-        this.logger.info(JsonMapper.parse(message));
-        this.messages.add(message);
+    public static void addMessage(Message message) throws JsonProcessingException {
+        logger.info(JsonMapper.parse(message));
+        messages.add(message);
     }
 }

@@ -16,10 +16,17 @@ import java.net.InetSocketAddress;
 public class Server extends WebSocketServer {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
     private static final int PORT = 4242;
-    private static final ServerState serverState = new ServerState();
 
-    public Server() {
+    private static Server instance = null;
+
+    private Server() {
         super(new InetSocketAddress(PORT));
+    }
+
+    public static void runThat() {
+        if (instance != null) return;
+        instance = new Server();
+        instance.start();
     }
 
     @Override
@@ -29,7 +36,7 @@ public class Server extends WebSocketServer {
         String name = resourceDescriptor.split("name=")[1].split("&")[0];
 
         try {
-            User newUser = serverState.addUser(name);
+            User newUser = ServerState.addUser(name);
             webSocket.setAttachment(newUser);
         }
         catch (UsernameAlreadyExistsException usernameExc) {
@@ -57,7 +64,7 @@ public class Server extends WebSocketServer {
     public void onClose(WebSocket webSocket, int i, String s, boolean b) {
         logger.debug("onClose");
         User user = webSocket.getAttachment();
-        boolean removed = serverState.removeUser(user);
+        boolean removed = ServerState.removeUser(user);
         if (removed) logger.info("The client {} is now disconnected", user.getName());
     }
 
@@ -70,7 +77,7 @@ public class Server extends WebSocketServer {
             Message message = JsonMapper.decode(jsonMessage, Message.class);
             message.setSender(webSocket.getAttachment());
 
-            serverState.addMessage(message);
+            ServerState.addMessage(message);
         } catch (JsonProcessingException e) {
             logger.error("Bad messageDTO format.\n\tThe accepted format is : { content: String }");
         }
