@@ -38,6 +38,7 @@ public class Server extends WebSocketServer {
         try {
             User newUser = ServerState.addUser(name);
             webSocket.setAttachment(newUser);
+            logger.info("The client {} is now connected", newUser.getName());
         }
         catch (UsernameAlreadyExistsException usernameExc) {
             logger.debug("Username already exists");
@@ -57,7 +58,6 @@ public class Server extends WebSocketServer {
             return;
         }
 
-        logger.info("The client {} is now connected", name);
     }
 
     @Override
