@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 
 public class Server extends WebSocketServer {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
@@ -27,6 +28,17 @@ public class Server extends WebSocketServer {
         if (instance != null) return;
         instance = new Server();
         instance.start();
+    }
+
+    private static void sendToEveryone(Message message) {
+        ArrayList<WebSocket> webSockets = new ArrayList<>(instance.getConnections());
+        webSockets.forEach(webSocket -> {
+            try {
+                webSocket.send(JsonMapper.parse(message));
+            } catch (JsonProcessingException e) {
+                logger.error("A JSON parsing error occured while sending a message to all clients", e);
+            }
+        });
     }
 
     @Override
@@ -55,9 +67,7 @@ public class Server extends WebSocketServer {
             }
 
             webSocket.close();
-            return;
         }
-
     }
 
     @Override
@@ -77,7 +87,9 @@ public class Server extends WebSocketServer {
             Message message = JsonMapper.decode(jsonMessage, Message.class);
             message.setSender(webSocket.getAttachment());
 
-            ServerState.addMessage(message);
+            Message addedMessage = ServerState.addMessage(message);
+            sendToEveryone(addedMessage);
+
         } catch (JsonProcessingException e) {
             logger.error("Bad messageDTO format.\n\tThe accepted format is : { content: String }");
         }

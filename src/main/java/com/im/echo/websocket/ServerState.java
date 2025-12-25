@@ -39,8 +39,10 @@ public class ServerState {
         return users.removeIf(u -> user.getId().equals(u.getId()));
     }
 
-    public static void addMessage(Message message) throws JsonProcessingException {
+    public static Message addMessage(Message message) throws JsonProcessingException {
+        if (messages.stream().anyMatch(m -> m.getId().equals(message.getId()))) return null;
         logger.info(JsonMapper.parse(message));
         messages.add(message);
+        return message;
     }
 }
