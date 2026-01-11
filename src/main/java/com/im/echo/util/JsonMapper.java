@@ -2,10 +2,10 @@ package com.im.echo.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
 public class JsonMapper {
+
+    private JsonMapper() {}
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
