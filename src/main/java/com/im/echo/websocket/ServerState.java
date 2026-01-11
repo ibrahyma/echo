@@ -1,10 +1,12 @@
 package com.im.echo.websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.im.echo.exceptions.UsernameAlreadyExistsException;
+import com.im.echo.exceptions.BadUsernameException;
 import com.im.echo.model.Message;
 import com.im.echo.model.User;
 import com.im.echo.util.JsonMapper;
+import com.im.echo.validation.UsernameValidator;
+import com.im.echo.validation.ValidationResult;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,23 +22,19 @@ public class ServerState {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerState.class);
 
-    private static boolean usernameExists(String name) {
-        return users.stream().anyMatch(user -> user.getName().equals(name.toLowerCase().trim()));
-    }
+    public static User addUser(String name) throws BadUsernameException {
+        ValidationResult validationResult = UsernameValidator.checkValidity(name);
 
-    public static User addUser(String name) throws UsernameAlreadyExistsException {
-        if (usernameExists(name)) {
-            throw new UsernameAlreadyExistsException(String.format("Le nom %s est deja utilisé", name));
-        }
+        if (!validationResult.isValid())
+            throw new BadUsernameException(validationResult);
 
-        User addedUser = User.builder().name(name.toLowerCase()).build();
+        User addedUser = User.builder().name(UsernameValidator.format(name)).build();
         users.add(addedUser);
         return addedUser;
     }
 
     public static boolean removeUser(User user) {
-        if (user == null) return false;
-        return users.removeIf(u -> user.getId().equals(u.getId()));
+        return users.remove(user);
     }
 
     public static Message addMessage(Message message) throws JsonProcessingException {

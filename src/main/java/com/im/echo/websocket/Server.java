@@ -1,10 +1,12 @@
 package com.im.echo.websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.im.echo.exceptions.UsernameAlreadyExistsException;
+import com.im.echo.exceptions.BadUsernameException;
 import com.im.echo.model.Message;
 import com.im.echo.model.User;
 import com.im.echo.util.JsonMapper;
+import com.im.echo.validation.ValidationError;
+import com.im.echo.validation.ValidationResult;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -45,17 +47,26 @@ public class Server extends WebSocketServer {
     public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
         logger.debug("onOpen");
         String resourceDescriptor = clientHandshake.getResourceDescriptor();
-        String name = resourceDescriptor.split("name=")[1].split("&")[0];
 
         try {
+            String[] resourceDescriptorSplit = resourceDescriptor.split("name=");
+
+            if (resourceDescriptorSplit.length != 2)
+                throw new BadUsernameException(ValidationResult.invalid(ValidationError.USERNAME_EMPTY_OR_NULL));
+
+            String name = resourceDescriptorSplit[1].split("&")[0];
+
+            if (name.isEmpty())
+                throw new BadUsernameException(ValidationResult.invalid(ValidationError.USERNAME_EMPTY_OR_NULL));
+
             User newUser = ServerState.addUser(name);
             webSocket.setAttachment(newUser);
             logger.info("The client {} is now connected", newUser.getName());
         }
-        catch (UsernameAlreadyExistsException usernameExc) {
-            logger.debug("Username already exists");
+        catch (BadUsernameException badUsernameE) {
+            logger.debug(badUsernameE.getMessage());
             Message errorMessage = Message.builder()
-                    .content("Username already exists")
+                    .content(badUsernameE.getMessage())
                     .error(true)
                     .build();
 
