@@ -1,9 +1,6 @@
 package com.im.echo.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -12,10 +9,12 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class User {
 
     @Builder.Default
     private UUID id = UUID.randomUUID();
 
+    @EqualsAndHashCode.Include
     private String name;
 }
